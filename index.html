@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" href="https://picsum.photos/16" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet">
+    <title>Picsum</title>
+    <style>
+        body {
+			cursor: none;
+            margin: 0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            font-size: 24px;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: black; /* Fallback background */
+        }
+		
+		h1 {
+			-webkit-user-select: none; /* Safari */        
+			-moz-user-select: none; /* Firefox */
+			-ms-user-select: none; /* IE10+/Edge */
+			user-select: none; /* Standard */
+			font-family: "DM Serif Text", serif;
+			font-weight: 400;
+			font-style: normal;
+			font-size: 120px;
+			color: #FFB800;
+			-webkit-text-stroke-width: 1px;
+			-webkit-text-stroke-color: black;
+		}
+		
+		.cursor {
+			  position: fixed;
+			  width: 50px;
+			  height: 50px;
+			  background-color: white; /* Base cursor color */
+			  border-radius: 50%;
+			  mix-blend-mode: difference; /* Color inverter */
+			  pointer-events: none;
+			  transform: translate(-50%, -50%);
+			  transition: transform 0.1s ease-out; /* Smooth cursor movement */
+		}
+    </style>
+</head>
+<body>
+	<div id="cursor" class="cursor"></div>
+	<h1 unselectable="on">Picsum</h1>
+    <script>
+		const cursor = document.getElementById("cursor");
+		const imageCache = []; // Array to store preloaded images
+        let currentImageIndex = 0;
+        let changeBGInterval = null;
+		
+		document.addEventListener("mousemove", (e) => {
+			  cursor.style.left = `${e.clientX}px`;
+			  cursor.style.top = `${e.clientY}px`;
+		});
+		
+        function getRandomImageUrl() {
+            return `https://picsum.photos/1920/1080?random=${Date.now()}-${Math.random()}`;
+        }
+
+        function preloadImage(callback) {
+            const imageUrl = getRandomImageUrl();
+            const img = new Image();
+            img.src = imageUrl;
+
+            img.onload = () => {
+                callback(imageUrl);
+            };
+
+            img.onerror = () => {
+                console.error('Failed to preload image:', imageUrl);
+                preloadImage(callback); // Retry
+            };
+        }
+
+        function preloadImages(count) {
+            for (let i = 0; i < count; i++) {
+                preloadImage((url) => imageCache.push(url));
+            }
+        }
+
+        function changeBG() {
+            if (imageCache.length > 0) {
+                document.body.style.backgroundImage = `url('${imageCache[currentImageIndex]}')`;
+                currentImageIndex = (currentImageIndex + 1) % imageCache.length;
+
+                // Preload the next image
+                preloadImage((url) => {
+                    imageCache[currentImageIndex] = url;
+                });
+            }
+        }
+
+        function startRandomInterval() {
+            if (changeBGInterval) clearInterval(changeBGInterval);
+
+            //const interval = Math.random() * (300 - 100) + 100; // Random interval in ms (0.1 to 0.7 seconds)
+			const interval = Math.random() * (550 - 450) + 450;
+            changeBGInterval = setInterval(() => {
+                changeBG();
+                startRandomInterval(); // Reset interval
+            }, interval);
+        }
+
+        const initialImagesCount = 5;
+        preloadImages(initialImagesCount);
+
+        const startIntervalWhenReady = setInterval(() => {
+            if (imageCache.length > 0) {
+                changeBG();
+                startRandomInterval();
+                clearInterval(startIntervalWhenReady);
+            }
+        }, 100);
+    </script>
+</body>
+</html>
